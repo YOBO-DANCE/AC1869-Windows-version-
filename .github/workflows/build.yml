@@ -32,20 +32,29 @@ jobs:
         run: |
           pyinstaller --onefile --name 1869AC main.py
 
-      - name: Bundle Source Code into ZIP
+      - name: Package Executable with Songs Folder
+        run: |
+          # Copy the songs directory into dist alongside the compiled executable
+          cp -r songs dist/
+          # Zip the compiled app and songs folder together
+          cd dist
+          zip -r ../1869AC-app-with-songs.zip 1869AC songs
+          cd ..
+
+      - name: Bundle Full Source Code into ZIP
         run: |
           zip -r 1869AC-source.zip . -x "*.git*" -x "*build*" -x "*dist*" -x "*.DS_Store*"
 
-      - name: Upload Temporary Source ZIP Artifact
+      - name: Upload App Package Artifact (Executable + Songs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: 1869AC-app-with-songs
+          path: 1869AC-app-with-songs.zip
+          retention-days: 7
+
+      - name: Upload Full Source ZIP Artifact
         uses: actions/upload-artifact@v4
         with:
           name: 1869AC-source-code
           path: 1869AC-source.zip
-          retention-days: 7
-
-      - name: Upload Temporary Compiled Terminal App Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: 1869AC-terminal-app
-          path: dist/1869AC
           retention-days: 7
