@@ -2,14 +2,14 @@ import  widgets
 import vlc
 import time
 
-songs = ["songs/audiomass-output.mp3",
-         "songs/Joy Crookes - Feet Don't Fail Me Now (Official Video).mp3",
-         "songs/Sade - Smooth Operator - Official - 1984.mp3",
-         "songs/Катя Лель - Мой мармеладный.mp3"]
+songs = ["./songs/audiomass-output.mp3",
+         "./songs/Joy Crookes - Feet Don't Fail Me Now (Official Video).mp3",
+         "./songs/Sade - Smooth Operator - Official - 1984.mp3",
+         "./songs/Катя Лель - Мой мармеладный.mp3"]
 
 current_song = songs[0]
 current_song_data = current_song.split(".")
-current_song_name = current_song_data[0].split("/")
+current_song_name = current_song_data[1].split("/")
 player = vlc.MediaPlayer(current_song)
 player.play()
 
