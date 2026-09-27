@@ -56,24 +56,4 @@ jobs:
         with:
           name: 1869AC-source-code
           path: 1869AC-source.zip
-          retention-days: 7          cd dist
-          zip -r ../1869AC-app.zip 1869AC
-          cd ..
-
-      - name: Bundle Python Source Files into ZIP
-        run: |
-          zip 1869AC-source.zip main.py songs_path.py widgets.py
-
-      - name: Upload App Executable Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: 1869AC-app
-          path: 1869AC-app.zip
-          retention-days: 7
-
-      - name: Upload Source Code Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: 1869AC-source-code
-          path: 1869AC-source.zip
           retention-days: 7
