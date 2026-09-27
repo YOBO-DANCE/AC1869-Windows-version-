@@ -1,28 +1,49 @@
 import os
 import sys
-import time
-import importlib
 from pathlib import Path
-import widgets
-import vlc
-import songs_path
 
-# Set working directory to executable folder
-base_dir = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).parent.resolve()
-os.chdir(base_dir)
-if str(base_dir) not in sys.path:
-    sys.path.insert(0, str(base_dir))
+# 1. SETUP PATHS FIRST (Critical for PyInstaller to find local files)
+if getattr(sys, 'frozen', False):
+    # Running as compiled executable
+    bundle_dir = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+    exe_dir = Path(sys.executable).parent
+    
+    # Add bundle directory to sys.path so bundled widgets.py can be found
+    if str(bundle_dir) not in sys.path:
+        sys.path.insert(0, str(bundle_dir))
+        
+    # Add executable directory to sys.path so external songs_path.py can override
+    if str(exe_dir) not in sys.path:
+        sys.path.insert(0, str(exe_dir))
+        
+    os.chdir(exe_dir)
+else:
+    # Running as standard script
+    exe_dir = Path(__file__).parent.resolve()
+    if str(exe_dir) not in sys.path:
+        sys.path.insert(0, str(exe_dir))
+    os.chdir(exe_dir)
 
-# Create songs_path.py if missing so open() doesn't fail
-if not os.path.exists("songs_path.py"):
-    open("songs_path.py", "w").close()
+# 2. CREATE CONFIG FILE IF MISSING
+songs_file_path = Path("songs_path.py")
+if not songs_file_path.exists():
+    songs_file_path.write_text("# Auto-imported playlist file\n", encoding="utf-8")
 
-# Suppress stderr to keep terminal clean (you can leave this active now)
+# 3. SUPPRESS TERMINAL ERRORS (Keeps UI clean)
 stderr_fd = sys.stderr.fileno()
 devnull = os.open(os.devnull, os.O_WRONLY)
 os.dup2(devnull, stderr_fd)
 os.close(devnull)
 
+# 4. PERFORM IMPORTS NOW THAT SYS.PATH IS FIXED
+import time
+import importlib
+import pygame
+import widgets
+import vlc
+import songs_path
+
+# --- REST OF THE APP ---
 def import_songs():
     global continue_or_not
     with open("songs_path.py", "r") as song:
