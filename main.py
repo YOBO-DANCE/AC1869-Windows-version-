@@ -14,10 +14,10 @@ if str(base_dir) not in sys.path:
 if not os.path.exists("songs_path.py"):
     open("songs_path.py", "w").close()
 
-stderr_fd = sys.stderr.fileno()
-devnull = os.open(os.devnull, os.O_WRONLY)
-os.dup2(devnull, stderr_fd)
-os.close(devnull)
+# stderr_fd = sys.stderr.fileno()
+# devnull = os.open(os.devnull, os.O_WRONLY)
+# os.dup2(devnull, stderr_fd)
+# os.close(devnull)
 
 import widgets
 import vlc
