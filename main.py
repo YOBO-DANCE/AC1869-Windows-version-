@@ -3,6 +3,9 @@ import sys
 import time
 import importlib
 from pathlib import Path
+import widgets
+import vlc
+import songs_path
 
 # Set working directory to executable folder
 base_dir = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).parent.resolve()
@@ -14,14 +17,11 @@ if str(base_dir) not in sys.path:
 if not os.path.exists("songs_path.py"):
     open("songs_path.py", "w").close()
 
-# stderr_fd = sys.stderr.fileno()
-# devnull = os.open(os.devnull, os.O_WRONLY)
-# os.dup2(devnull, stderr_fd)
-# os.close(devnull)
-
-import widgets
-import vlc
-import songs_path
+# Suppress stderr to keep terminal clean (you can leave this active now)
+stderr_fd = sys.stderr.fileno()
+devnull = os.open(os.devnull, os.O_WRONLY)
+os.dup2(devnull, stderr_fd)
+os.close(devnull)
 
 def import_songs():
     global continue_or_not
@@ -76,4 +76,4 @@ if continue_or_not:
     widget.loop_for_song(player, length_of_song, playlist, current_song_index)
 else:
     print("please rerun the code to retry")
-    exit()
+    sys.exit()
