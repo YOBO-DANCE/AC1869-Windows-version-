@@ -30,7 +30,7 @@ jobs:
 
       - name: Compile Terminal App with PyInstaller
         run: |
-          pyinstaller --onefile --add-data "turning_pages-ui-toggle-off-confirmation-608627.mp3:." --name 1869AC main.py
+          pyinstaller --onefile --hidden-import widgets --hidden-import songs_path --add-data "turning_pages-ui-toggle-off-confirmation-608627.mp3:." --name 1869AC main.py
 
       - name: Package Executable with UI Sound and Config
         run: |
