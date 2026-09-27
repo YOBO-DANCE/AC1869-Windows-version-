@@ -7,6 +7,7 @@ import tty
 import vlc
 import datetime
 import importlib.util
+import shutil
 from pathlib import Path
 from pygame import mixer
 import random
@@ -213,6 +214,19 @@ class UiWidgets:
         lines = [
             f"[{self.new_timeline}] [{self.current_min}:{self.current_sec:02d}|{total_time_str}] [ {self.loop_type_symbol} {self.play_pause} {self.shuffle_symbol} ] [{''.join(self.volume_list)}]",
             f"[ {self.current_vinyl} {self.song}] [{self.now_real_time}]"
+        ]
+        # A line longer than the terminal is wide gets wrapped by the
+        # terminal onto an extra physical row. This code only ever moves
+        # the cursor back up by len(lines) (2), so a single wrapped song
+        # name silently breaks that math forever after - each further
+        # render drifts one more row down, which is what "goes crazy"
+        # during shuffle (it jumps between wildly different name lengths
+        # back to back). Truncating keeps every line to one physical row.
+        term_width = shutil.get_terminal_size(fallback=(80, 24)).columns
+        safe_width = max(term_width - 5, 10)
+        lines = [
+            line if len(line) <= safe_width else line[:safe_width - 1] + "…"
+            for line in lines
         ]
         for line in lines:
             print(f"\x1b[2K\r{line}")
