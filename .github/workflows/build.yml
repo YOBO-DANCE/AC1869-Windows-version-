@@ -26,33 +26,30 @@ jobs:
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install python-vlc pyinstaller
+          pip install python-vlc pyinstaller pygame
 
       - name: Compile Terminal App with PyInstaller
         run: |
           pyinstaller --onefile --name 1869AC main.py
 
-      - name: Package Executable with Songs Folder
+      - name: Package Executable
         run: |
-          # Copy the songs directory into dist alongside the compiled executable
-          cp -r songs dist/
-          # Zip the compiled app and songs folder together
           cd dist
-          zip -r ../1869AC-app-with-songs.zip 1869AC songs
+          zip -r ../1869AC-app.zip 1869AC
           cd ..
 
-      - name: Bundle Full Source Code into ZIP
+      - name: Bundle Python Source Files into ZIP
         run: |
-          zip -r 1869AC-source.zip . -x "*.git*" -x "*build*" -x "*dist*" -x "*.DS_Store*"
+          zip 1869AC-source.zip main.py songs_path.py widgets.py
 
-      - name: Upload App Package Artifact (Executable + Songs)
+      - name: Upload App Executable Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: 1869AC-app-with-songs
-          path: 1869AC-app-with-songs.zip
+          name: 1869AC-app
+          path: 1869AC-app.zip
           retention-days: 7
 
-      - name: Upload Full Source ZIP Artifact
+      - name: Upload Source Code Artifact
         uses: actions/upload-artifact@v4
         with:
           name: 1869AC-source-code
