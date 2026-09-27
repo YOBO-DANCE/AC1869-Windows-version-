@@ -1,27 +1,41 @@
 # 1869AC
 
-**1869AC** is a lightweight, terminal-based music player built in Python. It features an animated TUI (Terminal User Interface) complete with a live timeline progress bar, a spinning vinyl icon, time tracking, and interactive keyboard controls powered by `libvlc`.
+**1869AC** is an animated, terminal-based music player built in Python. Powered by `libvlc` and `pygame.mixer`, it features multi-playlist support, multiple folder importing, volume controls, shuffle queueing, and a custom ANSI terminal interface with UI sound effects.
 
 ---
 
 ## Features
 
-- **Terminal UI Dashboard:** Displays real-time audio progress, elapsed vs. total time, and current playback status.
-- **Spinning Vinyl Animation:** dynamic vinyl indicator (`◐` `◓` `◑` `◒`) that rotates during active playback ( *it is just half circles emojies rotating* ).
-- **Interactive Playback Controls:** Non-blocking terminal input for real-time player manipulation without pressing Enter.
-- **Seeking & Navigation:** Jump forward or backward by 10-second increments without freezing the ui or the terminal.
-- **VLC Playback Engine:** Uses `python-vlc` for audio processing.
+- **Music Importer:** Scans any directory on your computer for audio files (`.mp3`, `.wav`, `.flac`, `.m4a`, `.ogg`) and saves them as custom named playlists.
+  
+- **Interactive Startup Menu:** Displays available playlists on launch for quick selection.
+  
+- **Track Navigation:** Next (`m`) and previous (`n`) song controls with history shuffle memory.
+  
+- **Volume & Sound Effects:** Real-time 10-level volume adjustments (`o`/`p`) complete with audio feedback using `pygame.mixer`.
+  
+- **Playback Modes:** Shuffle mode (`s`) and single-track with live visual status symbols.
+  
+- **Terminal UI Dashboard:** Renders a progress timeline bar, current date/clock, elapsed vs. total time, and an animated vinyl indicator.
+  
+- **Clean Console Output:** Automatically suppresses low-level VLC stderr logging to preserve terminal clean-ups.
 
 ---
 
-## Controls
+## Key Controls
 
 | Key | Action |
 | :--- | :--- |
-| **`Space`** or **`k`** | Play / Pause |
-| **`d`** or **`l`** | Seek Forward (10 seconds) |
-| **`a`** or **`j`** | Seek Backward (10 seconds) |
-| **`q`** | Quit application |
+| **`Space`** or **`k`** | Play / Pause|
+| **`m`** | Next Track|
+| **`n`** | Previous Track|
+| **`d`** or **`l`** | Seek Forward (10 seconds)|
+| **`a`** or **`j`** | Seek Backward (10 seconds)|
+| **`p`** | Volume Up 10%|
+| **`o`** | Volume Down 10%|
+| **`s`** | Toggle Shuffle Mode|
+| **`e`** | Toggle Repeat Mode (Auto / Single Loop) (doesn't work for now, just the symbol changes)|
+| **`q`** | Quit Player
 
 ---
 
