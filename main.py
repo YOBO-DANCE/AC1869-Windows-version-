@@ -40,11 +40,15 @@ for variable_name in dir(songs_path):
 for index in range(0, len(playlists_list)):
     print(f"{index}. {playlists_list[index]}")
 
-print("please enter the number next to the playlist you want to play:")
+print("please enter the number next to the playlist, for the playlist you want to play:")
 playlist_index = input("")
 
 name_for_Playlist = playlists_list[int(playlist_index)]
-playlist = getattr(songs_path, name_for_Playlist)
+try:
+    playlist = getattr(songs_path, name_for_Playlist)
+except IndexError:
+    print("tis playlist does not exists")
+
 
 current_song_index = 0
 current_song = playlist[current_song_index]
