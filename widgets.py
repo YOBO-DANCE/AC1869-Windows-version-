@@ -124,7 +124,6 @@ class UiWidgets:
                         self.render(song_time)
                         break
 
-
                 if player.is_playing():
                     time.sleep(0.1)
                     current_ms = max(0, player.get_time())
@@ -144,7 +143,10 @@ class UiWidgets:
                     self.new_timeline = "========================="
                     self.play_pause = "▶"
                     self.render(song_time)
-                    player, song_time, current_index = self.next_song(player, playlist, current_index, self.shuffle)
+                    if self.loop_type == "one":
+                        player, song_time, current_index = self.loop(player, playlist, current_index)
+                    else:
+                        player, song_time, current_index = self.next_song(player, playlist, current_index, self.shuffle)
         finally:
             termios.tcsetattr(sys.stdin, termios.TCSANOW, old_settings)
             print("\033[?25h\n")
@@ -195,6 +197,7 @@ class UiWidgets:
             next_index = random.randint(0, len(playlist) - 1)
         else:
             next_index = (current_index + 1) % len(playlist)
+
         player.stop()
         self.click_sound.play()
         next_song_path = playlist[next_index]
@@ -203,6 +206,7 @@ class UiWidgets:
         file_name_with_extension = path_parts[-1]
 
         next_song_name = file_name_with_extension
+
         new_player = vlc.MediaPlayer(next_song_path)
         new_player.audio_set_volume(self.volume_level * 10)
         new_player.play()
@@ -242,6 +246,27 @@ class UiWidgets:
         self.reset(previous_song_name)
 
         return new_player, new_song_time, previous_index
+
+    def loop(self, player, playlist, current_index):
+        player.stop()
+        self.click_sound.play()
+        current_song_path = playlist[current_index]
+        path_parts = current_song_path.split('/')
+        file_name_with_extension = path_parts[-1]
+
+        current_song_name = file_name_with_extension
+
+        new_player = vlc.MediaPlayer(current_song_path)
+        new_player.audio_set_volume(self.volume_level * 10)
+        new_player.play()
+
+        while new_player.get_length() <= 0:
+            time.sleep(0.1)
+
+        new_song_time = new_player.get_length() / 1000
+        self.reset(current_song_name)
+
+        return new_player, new_song_time, current_index
 
 def append_folder_to_songs_path(folder_path, playlist_name):
     path = Path(folder_path).expanduser().resolve()
