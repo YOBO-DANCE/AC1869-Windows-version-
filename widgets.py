@@ -1,4 +1,3 @@
-import os
 import time
 import sys
 import select
@@ -6,53 +5,15 @@ import termios
 import tty
 import vlc
 import datetime
-import importlib.util
-import shutil
 from pathlib import Path
 from pygame import mixer
 import random
-
-
-def get_base_dir():
-    """Folder the app is actually running from, whether it's a plain
-    .py script or a compiled PyInstaller executable. Used to find the
-    click-sound mp3 and songs_path.py next to wherever the app really
-    lives, instead of assuming the current working directory."""
-    if getattr(sys, "frozen", False):
-        return os.path.dirname(os.path.abspath(sys.executable))
-    return os.path.dirname(os.path.abspath(__file__))
-
-
-def songs_path_file():
-    """Absolute path to the live, editable songs_path.py sitting next
-    to the app."""
-    return os.path.join(get_base_dir(), "songs_path.py")
-
-
-def load_playlists():
-    """Read songs_path.py fresh off disk every time it's called, instead
-    of relying on a cached `import songs_path`. A cached import gets
-    frozen into a compiled exe at build time and never changes again,
-    so playlists added later would never show up. This always reflects
-    whatever is on disk right now. Returns {playlist_name: [song_paths]}."""
-    songs_file = songs_path_file()
-    spec = importlib.util.spec_from_file_location("songs_path_live", songs_file)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    playlists = {}
-    for variable_name in dir(module):
-        if not variable_name.startswith("__"):
-            data = getattr(module, variable_name)
-            if isinstance(data, list):
-                playlists[variable_name] = data
-    return playlists
 
 class UiWidgets:
 
     def __init__(self, name_of_song, player):
         mixer.init()
-        sound_path = os.path.join(get_base_dir(), "turning_pages-ui-toggle-off-confirmation-608627.mp3")
-        self.click_sound = mixer.Sound(sound_path)
+        self.click_sound = mixer.Sound("./turning_pages-ui-toggle-off-confirmation-608627.mp3")
         self.song = name_of_song
         self.current_sec = 0
         self.current_min = 0
@@ -75,7 +36,6 @@ class UiWidgets:
 
     # _________this snippet is made by AI sorry my brain was not braining__________
     def check_key_presses(self):
-        """Checks for non-blocking keypresses."""
         if select.select([sys.stdin], [], [], 0)[0]:
             key = sys.stdin.read(1)
             if key == '\x1b':
@@ -212,21 +172,8 @@ class UiWidgets:
         total_sec = int(song_time % 60)
         total_time_str = f"{total_min}:{total_sec:02d}"
         lines = [
-            f"[{self.new_timeline}] [{self.current_min}:{self.current_sec:02d}|{total_time_str}] [ {self.loop_type_symbol} {self.play_pause} {self.shuffle_symbol} ] [{''.join(self.volume_list)}]",
+            f"[{self.new_timeline}] [{self.current_min}:{self.current_sec:02d}|{total_time_str}] [ {self.loop_type_symbol} {self.play_pause} {self.shuffle_symbol} ] [{"".join(self.volume_list)}]",
             f"[ {self.current_vinyl} {self.song}] [{self.now_real_time}]"
-        ]
-        # A line longer than the terminal is wide gets wrapped by the
-        # terminal onto an extra physical row. This code only ever moves
-        # the cursor back up by len(lines) (2), so a single wrapped song
-        # name silently breaks that math forever after - each further
-        # render drifts one more row down, which is what "goes crazy"
-        # during shuffle (it jumps between wildly different name lengths
-        # back to back). Truncating keeps every line to one physical row.
-        term_width = shutil.get_terminal_size(fallback=(80, 24)).columns
-        safe_width = max(term_width - 5, 10)
-        lines = [
-            line if len(line) <= safe_width else line[:safe_width - 1] + "…"
-            for line in lines
         ]
         for line in lines:
             print(f"\x1b[2K\r{line}")
@@ -309,7 +256,7 @@ def append_folder_to_songs_path(folder_path, playlist_name):
     python_code = f"\n# Auto-imported playlist from: {path}\n{playlist_name} = [\n"
     python_code += "".join(f"    {repr(audio)},\n" for audio in audio_files)
     python_code += "]\n"
-    with open(songs_path_file(), "a", encoding="utf-8") as f:
+    with open("songs_path.py", "a", encoding="utf-8") as f:
         f.write(python_code)
     print(f"Added {len(audio_files)} songs to songs_path.py as list '{playlist_name}'.")
     return True
