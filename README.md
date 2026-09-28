@@ -48,9 +48,16 @@
    - **macOS:** `brew install --cask vlc`
    - **Linux (Ubuntu):** `sudo apt install vlc`
 
-### Setup
+### Install
 
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/mrpeng4/1869AC.git](https://github.com/mrpeng4/1869AC.git)
-   cd 1869AC
+```
+brew install --cask vlc
+brew tap mrpeng4/tap
+brew install ac1869
+1869ac
+```
+
+### Notes
+- macOS only for now
+- Requires Homebrew and VLC
+- Your playlists are stored in `~/Library/Application Support/1869AC/` and are never overwritten by updates
