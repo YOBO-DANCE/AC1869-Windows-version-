@@ -144,6 +144,10 @@ class UiWidgets:
                         self.render(song_time)
                         break
 
+                # add a new key press that is true or false and changes and eables specfic true false variable that triggres it so
+                # the render function so it re-renders a menuse but the music should not stop and then the user should be able to add a new 
+                # playlist i will need the key press system to make my own  system that lets you switch the playlist.
+
                 if player.is_playing():
                     time.sleep(0.1)
                     current_ms = max(0, player.get_time())
