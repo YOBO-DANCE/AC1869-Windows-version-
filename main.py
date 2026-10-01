@@ -20,6 +20,8 @@ def import_songs():
             user_directory = input("")
             print("please provide a name for the playlist:")
             user_directory_name = input("")
+            # add a check for space so if the user entres any spaces in the name for the directory replace it for _ (underscored)
+            #also add a re run message
             continue_or_not = widgets.append_folder_to_songs_path(user_directory, user_directory_name)
             exit()
         else:
@@ -42,6 +44,8 @@ for index in range(0, len(playlists_list)):
 
 print("please enter the number next to the playlist, for the playlist you want to play:")
 playlist_index = input("")
+# add a check so when it so it gives the user a responce if they didn't give a index number or add a space strip it and end the script and write 
+# it instead of re asking
 
 name_for_Playlist = playlists_list[int(playlist_index)]
 try:
