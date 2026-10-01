@@ -1,12 +1,12 @@
-import os
-import sys
+# import os
+# import sys
 
-stderr_fd = sys.stderr.fileno()
-devnull = os.open(os.devnull, os.O_WRONLY)
-os.dup2(devnull, stderr_fd)
-os.close(devnull)
+# stderr_fd = sys.stderr.fileno()
+# devnull = os.open(os.devnull, os.O_WRONLY)
+# os.dup2(devnull, stderr_fd)
+# os.close(devnull)
 
-import  widgets
+import widgets
 import vlc
 import time
 import songs_path

@@ -1,8 +1,13 @@
 import time
 import sys
-import select
-import termios
-import tty
+import os
+# import platform
+if os.name == "nt":
+    import msvcrt
+else:
+    import select
+    import termios
+    import tty
 import vlc
 import datetime
 from pathlib import Path
@@ -36,6 +41,17 @@ class UiWidgets:
 
     # _________this snippet is made by AI sorry my brain was not braining__________
     def check_key_presses(self):
+        if os.name == 'nt':  # ponytail: stdlib msvcrt instead of new dep
+            if msvcrt.kbhit():
+                ch = msvcrt.getch()
+                if ch in (b'\x00', b'\xe0'):
+                    ch2 = msvcrt.getch()
+                    return {b'H': 'p', b'P': 'o', b'K': 'LEFT', b'M': 'RIGHT'}.get(ch2)
+                try:
+                    return ch.decode('utf-8')
+                except UnicodeDecodeError:
+                    return None
+            return None
         if select.select([sys.stdin], [], [], 0)[0]:
             key = sys.stdin.read(1)
             if key == '\x1b':
@@ -51,8 +67,12 @@ class UiWidgets:
 
     def loop_for_song(self, player, song_time, playlist, current_index):
 
-        old_settings = termios.tcgetattr(sys.stdin)
-        tty.setcbreak(sys.stdin.fileno())
+        old_settings = None
+        if os.name != 'nt':
+            old_settings = termios.tcgetattr(sys.stdin)
+            tty.setcbreak(sys.stdin.fileno())
+        else:
+            os.system('')  # ponytail: enable ANSI escapes on Windows
         print("\033[?25l", end="")
 
         try:
@@ -67,13 +87,13 @@ class UiWidgets:
                         self.click_sound.play()
                         player.pause()
 
-                    elif key in ('d',"l"):
+                    elif key in ('d',"l",'RIGHT'):
                         self.click_sound.play()
                         new_ms = min(player.get_time() + 10000, int(song_time * 1000))
                         player.set_time(new_ms)
                         self.sync_timeline(song_time, new_ms)
 
-                    elif key in ('a',"j"):
+                    elif key in ('a',"j",'LEFT'):
                         self.click_sound.play()
                         new_ms = max(player.get_time() - 10000, 0)
                         player.set_time(new_ms)
@@ -148,7 +168,8 @@ class UiWidgets:
                     else:
                         player, song_time, current_index = self.next_song(player, playlist, current_index, self.shuffle)
         finally:
-            termios.tcsetattr(sys.stdin, termios.TCSANOW, old_settings)
+            if os.name != 'nt' and old_settings is not None:
+                termios.tcsetattr(sys.stdin, termios.TCSANOW, old_settings)
             print("\033[?25h\n")
 
     def sync_timeline(self, song_time, current_ms):
