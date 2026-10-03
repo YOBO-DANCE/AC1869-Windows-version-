@@ -1,10 +1,28 @@
 import os
 import sys
+from pathlib import Path
 
-stderr_fd = sys.stderr.fileno()
-devnull = os.open(os.devnull, os.O_WRONLY)
-os.dup2(devnull, stderr_fd)
-os.close(devnull)
+BASE_DIR = Path(__file__).resolve().parent
+SONGS_PATH_FILE = BASE_DIR / "songs_path.py"
+
+try:
+    # ponytail: silence low-level VLC noise; skip if fds unavailable (Windows).
+    stderr_fd = sys.stderr.fileno()
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(devnull, stderr_fd)
+    os.close(devnull)
+except (OSError, ValueError, AttributeError):
+    pass
+
+if os.name == "nt":
+    try:
+        os.system("")  # enable virtual terminal processing for ANSI on Windows
+    except OSError:
+        pass
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except (AttributeError, ValueError):
+        pass
 
 import time
 import vlc
@@ -12,7 +30,7 @@ import widgets
 import songs_path
 from import_system import append_folder_to_songs_path
 
-with open("songs_path.py", "r") as song:
+with open(SONGS_PATH_FILE, "r", encoding="utf-8") as song:
     if not song.read().strip():
         print(
             "It seems like there are no songs added. Please paste a folder path down below where all your music is located:")
@@ -51,7 +69,7 @@ playlist = getattr(songs_path, name_for_Playlist)
 current_song_index = 0
 current_song = playlist[current_song_index]
 
-current_song_name = current_song.split("/")[-1]
+current_song_name = Path(current_song).name
 player = vlc.MediaPlayer(current_song)
 player.play()
 

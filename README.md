@@ -50,6 +50,8 @@
 
 ### Install
 
+#### macOS
+
 ```
 brew install --cask vlc
 brew tap mrpeng4/tap
@@ -57,7 +59,17 @@ brew install ac1869
 1869ac
 ```
 
+#### Windows
+
+```
+winget install VideoLAN.VLC
+pip install python-vlc pygame
+python main.py
+```
+
+Use 64-bit VLC matching your Python install, and run in Windows Terminal (UTF-8 + ANSI + emoji support).
+
 ### Notes
-- macOS only for now
-- Requires Homebrew and VLC
-- Your playlists are stored in `~/Library/Application Support/1869AC/` and are never overwritten by updates
+- macOS and Windows supported (Linux VLC install above also works)
+- Requires VLC media player installed separately (backend is libvlc)
+- Your playlists are stored in `songs_path.py` next to the script

@@ -1,6 +1,9 @@
 from pathlib import Path
 import songs_path
 
+BASE_DIR = Path(__file__).resolve().parent
+SONGS_PATH_FILE = BASE_DIR / "songs_path.py"
+
 def append_folder_to_songs_path(folder_path, playlist_name):
 
     playlists_list = []
@@ -29,7 +32,7 @@ def append_folder_to_songs_path(folder_path, playlist_name):
         python_code = f"\n# Auto-imported playlist from: {path}\n{playlist_name} = [\n"
         python_code += "".join(f"    {repr(audio)},\n" for audio in audio_files)
         python_code += "]\n"
-        with open("songs_path.py", "a", encoding="utf-8") as f:
+        with open(SONGS_PATH_FILE, "a", encoding="utf-8") as f:
             f.write(python_code)
         print(f"Added {len(audio_files)} songs to songs_path.py as list '{playlist_name}'.")
         return True

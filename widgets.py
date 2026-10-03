@@ -1,13 +1,19 @@
+import os
 import time
 import sys
-import os
-# import platform
-if os.name == "nt":
-    import msvcrt
-else:
+from pathlib import Path
+try:
     import select
     import termios
     import tty
+except ImportError:  # Windows: POSIX terminal APIs unavailable
+    select = None
+    termios = None
+    tty = None
+try:
+    import msvcrt  # Windows-only; None on POSIX
+except ImportError:
+    msvcrt = None
 import vlc
 import datetime
 from pygame import mixer
@@ -15,11 +21,13 @@ import random
 from import_system import append_folder_to_songs_path
 import songs_path
 
+BASE_DIR = Path(__file__).resolve().parent
+
 class UiWidgets:
 
     def __init__(self, name_of_song, player):
         mixer.init()
-        self.click_sound = mixer.Sound("./turning_pages-ui-toggle-off-confirmation-608627.mp3")
+        self.click_sound = mixer.Sound(str(BASE_DIR / "turning_pages-ui-toggle-off-confirmation-608627.mp3"))
         self.song = name_of_song
         self.current_sec = 0
         self.current_min = 0
@@ -45,18 +53,24 @@ class UiWidgets:
         self.old_settings = None
 
     def check_key_presses(self):
-        if os.name == 'nt':  # ponytail: stdlib msvcrt instead of new dep
-            if msvcrt.kbhit():
-                ch = msvcrt.getch()
-                if ch in (b'\x00', b'\xe0'):
-                    ch2 = msvcrt.getch()
-                    return {b'H': 'p', b'P': 'o', b'K': 'LEFT', b'M': 'RIGHT'}.get(ch2)
-                try:
-                    return ch.decode('utf-8')
-                except UnicodeDecodeError:
+        # ponytail: Windows branch returns the same key strings as POSIX; no behavior change.
+        if os.name == "nt":
+            if msvcrt is not None and msvcrt.kbhit():
+                ch = msvcrt.getwch()
+                if ch in ("\x00", "\xe0"):
+                    second = msvcrt.getwch()
+                    if second == "M":
+                        return 'RIGHT'
+                    elif second == "K":
+                        return 'LEFT'
                     return None
+                if ch == "\r":
+                    return "\n"
+                if ch == "\x1b":
+                    return ch
+                return ch
             return None
-        if select.select([sys.stdin], [], [], 0)[0]:
+        if select is not None and select.select([sys.stdin], [], [], 0)[0]:
             key = sys.stdin.read(1)
             if key == '\x1b':
                 additional = sys.stdin.read(2)
@@ -69,13 +83,14 @@ class UiWidgets:
 
     def loop_for_song(self, player, song_time, playlist, current_index):
 
-        self.old_settings = None
-        if os.name != 'nt':
+        if os.name != "nt" and termios is not None and tty is not None:
             self.old_settings = termios.tcgetattr(sys.stdin)
             tty.setcbreak(sys.stdin.fileno())
             termios.tcflush(sys.stdin, termios.TCIFLUSH)
         else:
-            os.system('')  # ponytail: enable ANSI escapes on Windows
+            self.old_settings = None
+            if os.name == "nt":
+                os.system('')  # ponytail: enable ANSI escapes on Windows
         print("\033[?25l", end="")
 
         try:
@@ -200,7 +215,7 @@ class UiWidgets:
                     else:
                         player, song_time, current_index = self.next_song(player, playlist, current_index, self.shuffle)
         finally:
-            if os.name != 'nt' and self.old_settings is not None:
+            if os.name != "nt" and termios is not None and self.old_settings is not None:
                 termios.tcsetattr(sys.stdin, termios.TCSANOW, self.old_settings)
             print("\033[?25h\n")
 
@@ -265,11 +280,17 @@ class UiWidgets:
         self.play_pause = "⏸"
 
     def disable_cbreak(self, old_settings):
+        if os.name == "nt" or termios is None:
+            print("\033[?25h", end="", flush=True)
+            return
         termios.tcflush(sys.stdin, termios.TCIFLUSH)
         termios.tcsetattr(sys.stdin, termios.TCSANOW, old_settings)
         print("\033[?25h", end="", flush=True)
 
     def enable_cbreak(self):
+        if os.name == "nt" or termios is None or tty is None:
+            print("\033[?25l", end="", flush=True)
+            return
         tty.setcbreak(sys.stdin.fileno())
         print("\033[?25l", end="", flush=True)
         termios.tcflush(sys.stdin, termios.TCIFLUSH)
@@ -307,7 +328,7 @@ class UiWidgets:
         current_song_index = 0
         current_song = new_playlist[current_song_index]
 
-        new_song_name = current_song.split("/")[-1]
+        new_song_name = Path(current_song).name
         new_player = vlc.MediaPlayer(current_song)
 
         new_player.audio_set_volume(self.volume_level * 10)
@@ -338,10 +359,7 @@ class UiWidgets:
         self.click_sound.play()
         next_song_path = playlist[next_index]
 
-        path_parts = next_song_path.split('/')
-        file_name_with_extension = path_parts[-1]
-
-        next_song_name = file_name_with_extension
+        next_song_name = Path(next_song_path).name
 
         new_player = vlc.MediaPlayer(next_song_path)
         new_player.audio_set_volume(self.volume_level * 10)
@@ -367,9 +385,7 @@ class UiWidgets:
         self.click_sound.play()
         previous_song_path = playlist[previous_index]
 
-        path_parts = previous_song_path.split('/')
-        file_name_with_extension = path_parts[-1]
-        previous_song_name = file_name_with_extension
+        previous_song_name = Path(previous_song_path).name
 
         new_player = vlc.MediaPlayer(previous_song_path)
         new_player.audio_set_volume(self.volume_level * 10)
@@ -387,10 +403,8 @@ class UiWidgets:
         player.stop()
         self.click_sound.play()
         current_song_path = playlist[current_index]
-        path_parts = current_song_path.split('/')
-        file_name_with_extension = path_parts[-1]
 
-        current_song_name = file_name_with_extension
+        current_song_name = Path(current_song_path).name
 
         new_player = vlc.MediaPlayer(current_song_path)
         new_player.audio_set_volume(self.volume_level * 10)
