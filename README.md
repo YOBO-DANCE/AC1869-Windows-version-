@@ -63,7 +63,7 @@ brew install ac1869
 
 ```
 winget install VideoLAN.VLC
-pip install python-vlc pygame
+pip install -r requirements.txt
 python main.py
 ```
 
